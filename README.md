@@ -1,1 +1,1 @@
-# arangodb-adapter
+# arangoDB-Adapter
