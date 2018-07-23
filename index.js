@@ -176,7 +176,7 @@ module.exports = {
       throw error
     }
   },
-  count: async function (dataBase, collectionName, bindVars) {
+  count: async function (dataBase, collectionName) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#count
     try {
       let db = await this.getDB()
