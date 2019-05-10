@@ -2,7 +2,7 @@ const expect = require('chai').expect
 const chai = require('chai')
 const assertArrays = require('chai-arrays')
 chai.use(assertArrays)
-const arangodb = require('../../index')
+const arangodb = require('../../src/index')
 const dataBase = 'testDB'
 const collectionName = 'testCollectionName'
 let doc1

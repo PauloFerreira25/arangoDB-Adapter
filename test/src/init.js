@@ -1,5 +1,5 @@
 const expect = require('chai').expect
-const arangodb = require('../../index')
+const arangodb = require('../../src/index')
 describe('init', function () {
   it('Test DB não inicializado', async function () {
     try {
@@ -16,8 +16,8 @@ describe('init', function () {
         url: 'http://127.0.0.1:8529'
       },
       auth: {
-        username: 'test',
-        password: 'test123'
+        username: 'root',
+        password: 'geysa123'
       }
     }
     let init = await arangodb.init(config)

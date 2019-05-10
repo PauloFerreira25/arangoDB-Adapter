@@ -14,7 +14,11 @@ module.exports = {
       db.useDatabase('_system')
       return await db.createDatabase(dataBase)
     } catch (error) {
-      throw error
+      if (error.errorNum !== 1207) {
+        console.error({ error })
+        throw error
+      }
+      return error
     }
   },
   createCollection: async function (dataBase, collectionName) {
@@ -35,17 +39,17 @@ module.exports = {
       let db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
-      let newDoc = await collection.save(doc, insetOptions)
-      return newDoc.new
+      return await collection.save(doc, insetOptions)
     } catch (error) {
+      // console.debug(error.errorNum, { error })
       if (error.message.indexOf('database not found') >= 0) {
         await this.createDB(dataBase)
         return this.create(dataBase, collectionName, doc)
-      } else if (error.message.indexOf('collection not found') >= 0) {
+      } else if (error.errorNum == 1203) {
         await this.createCollection(dataBase, collectionName)
         return this.create(dataBase, collectionName, doc)
       } else {
-        console.log(error)
+        console.error(__filename, 'create', { error })
         throw error
       }
     }
@@ -58,7 +62,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.updateByExample(bindVars, newValue, true, true)
     } catch (error) {
-      console.log(error)
+      console.error({ error })
       throw error
     }
   },
@@ -74,7 +78,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.update(bindVars, newValue, options)
     } catch (error) {
-      console.log(error)
+      console.error({ error })
       throw error
     }
   },
@@ -86,7 +90,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.replaceByExample(bindVars, newValue, true)
     } catch (error) {
-      console.log(error)
+      console.error({ error })
       throw error
     }
   },
@@ -102,7 +106,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.replace(bindVars, newValue, options)
     } catch (error) {
-      console.log(error)
+      console.error({ error })
       throw error
     }
   },
@@ -114,7 +118,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.removeByExample(bindVars, true)
     } catch (error) {
-      console.log(error)
+      console.error({ error })
       throw error
     }
   },
@@ -129,7 +133,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.remove(key, options)
     } catch (error) {
-      console.log(error)
+      console.error({ error })
       throw error
     }
   },
@@ -145,7 +149,6 @@ module.exports = {
       } else {
         let msg = `Resultado não encontrado. DB[${dataBase}]/collection[${collectionName}]/bindVars[${JSON.stringify(bindVars)}]`
         let error = new Error(msg)
-        console.log(error)
         throw error
       }
     } catch (error) {

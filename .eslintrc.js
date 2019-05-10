@@ -1,17 +1,18 @@
 module.exports = {
-  "extends": "standard",
-  "env": {
-    "node": true,
-    "mocha": true
+  'env': {
+    'es6': true,
+    'node': true
   },
-  "plugins": [
-    "mocha"
-  ],
-  "rules": {
-    "mocha/no-exclusive-tests": "error",
-    "no-unused-vars": [
-      "error",
-      { "varsIgnorePattern": "should|expect" }
-    ]
+  'extends': 'standard',
+  'globals': {
+    'Atomics': 'readonly',
+    'SharedArrayBuffer': 'readonly'
+  },
+  'parserOptions': {
+    'ecmaVersion': 2018,
+    'sourceType': 'module',
+    'parser': 'babel-eslint'
+  },
+  'rules': {
   }
-};
+}
