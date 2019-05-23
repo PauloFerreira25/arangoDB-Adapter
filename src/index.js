@@ -137,7 +137,7 @@ module.exports = {
       throw error
     }
   },
-  findOne: async function (dataBase, collectionName, bindVars) {
+  findOne: async function (dataBase, collectionName, bindVars, options) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#query-by-example
     try {
       let db = await this.getDB()
@@ -152,10 +152,15 @@ module.exports = {
         throw error
       }
     } catch (error) {
+      if(error && error.isArangoError && options){
+        if(error.response.body.errorNum === 1203 && options.orBlank){
+          return {}
+        }        
+      }       
       throw error
     }
   },
-  find: async function (dataBase, collectionName, bindVars) {
+  find: async function (dataBase, collectionName, bindVars, options) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#query-by-example
     try {
       let db = await this.getDB()
