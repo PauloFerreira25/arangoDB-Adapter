@@ -21,21 +21,43 @@ module.exports = {
       return error
     }
   },
-  createCollection: async function (dataBase, collectionName) {
+  createCollection: async function (dataBase, collectionName, options = { waitForSync: true }) {
     try {
       let db = await this.getDB()
+      db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
-      return await collection.create()
+      let e = await collection.exists()
+      if (!e) {
+        await collection.create(options)
+      }
+      return true
     } catch (error) {
       throw error
     }
   },
-  create: async function (dataBase, collectionName, doc) {
+  createIndex: async function (dataBase, collectionName, index) {
     try {
-      let insetOptions = {
-        waitForSync: true,
-        returnNew: true
-      }
+      let db = await this.getDB()
+      db.useDatabase(dataBase)
+      let collection = db.collection(collectionName)
+      return await collection.createIndex(index)
+    } catch (error) {
+      throw error
+    }
+  },
+  createHashIndex: async function (dataBase, collectionName, fields, opts = {}) {
+    try {
+      let db = await this.getDB()
+      db.useDatabase(dataBase)
+      let collection = db.collection(collectionName)
+      return await collection.createHashIndex(fields, opts)
+    } catch (error) {
+      throw error
+    }
+  },
+
+  create: async function (dataBase, collectionName, doc, insetOptions = { waitForSync: true, returnNew: true }) {
+    try {
       let db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
@@ -49,7 +71,7 @@ module.exports = {
         await this.createCollection(dataBase, collectionName)
         return this.create(dataBase, collectionName, doc)
       } else {
-        console.error(__filename, 'create', { error })
+        // console.error(__filename, 'create', { error })
         throw error
       }
     }
@@ -152,11 +174,11 @@ module.exports = {
         throw error
       }
     } catch (error) {
-      if(error && error.isArangoError && options){
-        if(error.response.body.errorNum === 1203 && options.orBlank){
+      if (error && error.isArangoError && options) {
+        if (error.response.body.errorNum === 1203 && options.orBlank) {
           return {}
-        }        
-      }       
+        }
+      }
       throw error
     }
   },
