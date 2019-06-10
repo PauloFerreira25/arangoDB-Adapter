@@ -23,12 +23,31 @@ module.exports = {
   },
   createCollection: async function (dataBase, collectionName, options = { waitForSync: true }) {
     try {
+      // console.log(dataBase, collectionName, options)
       let db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       let e = await collection.exists()
+      // console.log({e})
       if (!e) {
-        await collection.create(options)
+        // console.log('{!e}', collectionName)
+        return await collection.create(options)
+      }
+      // console.log('{e}', collectionName)
+      return true
+    } catch (error) {
+      throw error
+    }
+  },
+  dropCollection: async function (dataBase, collectionName, options = { }) {
+    try {
+      let db = await this.getDB()
+      db.useDatabase(dataBase)
+      let collection = db.collection(collectionName)
+      let e = await collection.exists()
+      if (e) {
+        let result = await collection.drop(options)
+        console.log('drop - result',result )
       }
       return true
     } catch (error) {
@@ -68,7 +87,8 @@ module.exports = {
         await this.createDB(dataBase)
         return this.create(dataBase, collectionName, doc)
       } else if (error.errorNum == 1203) {
-        await this.createCollection(dataBase, collectionName)
+        let wait = await this.createCollection(dataBase, collectionName)
+        console.log(wait)
         return this.create(dataBase, collectionName, doc)
       } else {
         // console.error(__filename, 'create', { error })
