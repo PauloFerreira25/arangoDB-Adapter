@@ -15,7 +15,7 @@ module.exports = {
       return await db.createDatabase(dataBase)
     } catch (error) {
       if (error.errorNum !== 1207) {
-        console.error({ error })
+        // console.error({ error })
         throw error
       }
       return error
@@ -39,6 +39,15 @@ module.exports = {
       throw error
     }
   },
+  dropDatabase: async function (database) {
+    try {
+      let db = await this.getDB()
+      db.useDatabase('_system')
+      return db.dropDatabase(database)
+    } catch (error) {
+      throw error
+    }
+  },
   dropCollection: async function (dataBase, collectionName, options = { }) {
     try {
       let db = await this.getDB()
@@ -47,7 +56,7 @@ module.exports = {
       let e = await collection.exists()
       if (e) {
         let result = await collection.drop(options)
-        console.log('drop - result',result )
+        // console.log('drop - result',result )
       }
       return true
     } catch (error) {
@@ -88,7 +97,7 @@ module.exports = {
         return this.create(dataBase, collectionName, doc)
       } else if (error.errorNum == 1203) {
         let wait = await this.createCollection(dataBase, collectionName)
-        console.log(wait)
+        // console.log(wait)
         return this.create(dataBase, collectionName, doc)
       } else {
         // console.error(__filename, 'create', { error })
@@ -104,7 +113,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.updateByExample(bindVars, newValue, true, true)
     } catch (error) {
-      console.error({ error })
+      // console.error({ error })
       throw error
     }
   },
@@ -120,7 +129,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.update(bindVars, newValue, options)
     } catch (error) {
-      console.error({ error })
+      // console.error({ error })
       throw error
     }
   },
@@ -132,7 +141,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.replaceByExample(bindVars, newValue, true)
     } catch (error) {
-      console.error({ error })
+      // console.error({ error })
       throw error
     }
   },
@@ -148,7 +157,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.replace(bindVars, newValue, options)
     } catch (error) {
-      console.error({ error })
+      // console.error({ error })
       throw error
     }
   },
@@ -160,7 +169,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.removeByExample(bindVars, true)
     } catch (error) {
-      console.error({ error })
+      // console.error({ error })
       throw error
     }
   },
@@ -175,7 +184,7 @@ module.exports = {
       let collection = db.collection(collectionName)
       return await collection.remove(key, options)
     } catch (error) {
-      console.error({ error })
+      // console.error({ error })
       throw error
     }
   },
