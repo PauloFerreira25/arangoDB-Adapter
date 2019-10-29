@@ -18,6 +18,12 @@ describe('init', function () {
       auth: {
         username: 'test',
         password: 'geysa123'
+      },
+      schemas: {
+        testCollectionName: {
+          options: {},
+          indexes: [{}]
+        }
       }
     }
     const init = await arangodb.init(config)
