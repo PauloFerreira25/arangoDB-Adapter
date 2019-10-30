@@ -1,10 +1,10 @@
 const expect = require('chai').expect
 const chai = require('chai')
 const assertArrays = require('chai-arrays')
-chai.use(assertArrays)
 const arangodb = require('../../src/index')
 const dataBase = 'testDB'
 const collectionName = 'testCollectionName'
+chai.use(assertArrays)
 let doc1
 let doc2
 let doc3
@@ -14,25 +14,25 @@ describe('run', function () {
     const docInsert = { a: 1, b: 2, c: 3 }
     const addDoc = await arangodb.create(dataBase, collectionName, docInsert)
     doc1 = addDoc.new
-    expect(doc1).to.be.a('object')
+    expect(doc1).to.include(docInsert)
   })
   it('insert doc 2', async function () {
     const docInsert = { a: 1, b: 2, c: 4 }
     const addDoc = await arangodb.create(dataBase, collectionName, docInsert)
     doc2 = addDoc.new
-    expect(doc2).to.be.a('object')
+    expect(doc2).to.include(docInsert)
   })
   it('insert doc 3', async function () {
     const docInsert = { j: 1 }
     const addDoc = await arangodb.create(dataBase, collectionName, docInsert)
     doc3 = addDoc.new
-    expect(doc3).to.be.a('object')
+    expect(doc3).to.include(docInsert)
   })
   it('insert doc 4', async function () {
     const docInsert = { z: 1, x: [{ a: 1, b: 2 }, { a: 4 }] }
     const addDoc = await arangodb.create(dataBase, collectionName, docInsert)
     doc4 = addDoc.new
-    expect(doc4).to.be.a('object')
+    expect(doc4).to.deep.include(docInsert)
   })
   it('findOne', async function () {
     const bindVars = { a: 1, b: 2, c: 3 }
@@ -62,25 +62,45 @@ describe('run', function () {
   it('update doc', async function () {
     const bindVars = { a: 1, c: 3 }
     const newValue = { a: 2, d: 2 }
-    const result = await arangodb.update(dataBase, collectionName, bindVars, newValue)
+    const result = await arangodb.update(
+      dataBase,
+      collectionName,
+      bindVars,
+      newValue
+    )
     expect(result).to.include({ updated: 1 })
   })
   it('update By ID', async function () {
     const bindVars = doc3._id
     const newValue = { k: 2, m: 2 }
-    const result = await arangodb.updateByID(dataBase, collectionName, bindVars, newValue)
+    const result = await arangodb.updateByID(
+      dataBase,
+      collectionName,
+      bindVars,
+      newValue
+    )
     expect(result).to.be.a('object')
   })
   it('replace doc', async function () {
     const bindVars = { a: 2, d: 2 }
     const newValue = { a: 1, x: 5 }
-    const result = await arangodb.replace(dataBase, collectionName, bindVars, newValue)
+    const result = await arangodb.replace(
+      dataBase,
+      collectionName,
+      bindVars,
+      newValue
+    )
     expect(result).to.include({ replaced: 1 })
   })
   it('replace By ID', async function () {
     const bindVars = doc3._id
     const newValue = { a: 1, x: 5 }
-    const result = await arangodb.replaceByID(dataBase, collectionName, bindVars, newValue)
+    const result = await arangodb.replaceByID(
+      dataBase,
+      collectionName,
+      bindVars,
+      newValue
+    )
     expect(result).to.be.a('object')
   })
   it('count', async function () {
@@ -95,7 +115,11 @@ describe('run', function () {
   })
   it('delete By ID', async function () {
     const bindVars = doc3._id
-    const result = await arangodb.deleteByID(dataBase, collectionName, bindVars)
+    const result = await arangodb.deleteByID(
+      dataBase,
+      collectionName,
+      bindVars
+    )
     expect(result).to.be.a('object')
   })
   it('delete', async function () {
