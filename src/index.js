@@ -259,6 +259,17 @@ module.exports = {
     }
   },
 
+  queryCursor: async function (dataBase, query, bindVars, options) {
+    //  https://docs.arangodb.com/3.0/AQL/Fundamentals/Syntax.html
+    try {
+      let db = await this.getDB()
+      db.useDatabase(dataBase)
+      return db.query({ query, bindVars }, options)
+    } catch (error) {
+      throw error
+    }
+  },
+
   init: async function (config) {
     try {
       if (typeof config === 'undefined') {
