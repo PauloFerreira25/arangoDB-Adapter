@@ -1,6 +1,7 @@
 const Database = require('arangojs').Database
 module.exports = {
   db: undefined,
+  schemas: undefined,
   getDB: async function () {
     if (typeof this.db === 'undefined') {
       throw new Error('DB não inicializado')
@@ -10,7 +11,7 @@ module.exports = {
   },
   createDB: async function (dataBase) {
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase('_system')
       return await db.createDatabase(dataBase)
     } catch (error) {
@@ -21,41 +22,58 @@ module.exports = {
       return error
     }
   },
-  createCollection: async function (dataBase, collectionName, options = { waitForSync: true }) {
-    try {
-      // console.log(dataBase, collectionName, options)
-      let db = await this.getDB()
-      db.useDatabase(dataBase)
-      let collection = db.collection(collectionName)
-      let e = await collection.exists()
-      // console.log({e})
-      if (!e) {
-        // console.log('{!e}', collectionName)
-        return await collection.create(options)
+  createCollection: async function (
+    dataBase,
+    collectionName,
+    options = { waitForSync: true }
+  ) {
+    const db = await this.getDB()
+    db.useDatabase(dataBase)
+    const collection = db.collection(collectionName)
+    const e = await collection.exists()
+    // console.log({e})
+    if (!e) {
+      // console.log('{!e}', collectionName)
+      if (
+        this.schemas &&
+        this.schemas[collectionName] &&
+        this.schemas[collectionName].options
+      ) {
+        options = Object.assign(options, this.schemas[collectionName].options)
       }
-      // console.log('{e}', collectionName)
-      return true
-    } catch (error) {
-      throw error
+      await collection.create(options)
+      if (
+        this.schemas[collectionName].indexes &&
+        Array.isArray(this.schemas[collectionName].indexes)
+      ) {
+        const pall = this.schemas[collectionName].indexes.map(e => {
+          if (e.type === 'hash') {
+            this.createHashIndex(dataBase, collectionName, e.fields, e.opts)
+          }
+        })
+        await Promise.all(pall)
+      }
     }
+    // console.log('{e}', collectionName)
+    return true
   },
   dropDatabase: async function (database) {
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase('_system')
       return db.dropDatabase(database)
     } catch (error) {
       throw error
     }
   },
-  dropCollection: async function (dataBase, collectionName, options = { }) {
+  dropCollection: async function (dataBase, collectionName, options = {}) {
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       let e = await collection.exists()
       if (e) {
-        let result = await collection.drop(options)
+        const result = await collection.drop(options)
         // console.log('drop - result',result )
       }
       return true
@@ -65,7 +83,7 @@ module.exports = {
   },
   createIndex: async function (dataBase, collectionName, index) {
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       return await collection.createIndex(index)
@@ -74,19 +92,20 @@ module.exports = {
     }
   },
   createHashIndex: async function (dataBase, collectionName, fields, opts = {}) {
-    try {
-      let db = await this.getDB()
-      db.useDatabase(dataBase)
-      let collection = db.collection(collectionName)
-      return await collection.createHashIndex(fields, opts)
-    } catch (error) {
-      throw error
-    }
+    const db = await this.getDB()
+    db.useDatabase(dataBase)
+    const collection = db.collection(collectionName)
+    return collection.createHashIndex(fields, opts)
   },
 
-  create: async function (dataBase, collectionName, doc, insetOptions = { waitForSync: true, returnNew: true }) {
+  create: async function (
+    dataBase,
+    collectionName,
+    doc,
+    insetOptions = { waitForSync: true, returnNew: true }
+  ) {
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       return await collection.save(doc, insetOptions)
@@ -96,7 +115,7 @@ module.exports = {
         await this.createDB(dataBase)
         return this.create(dataBase, collectionName, doc)
       } else if (error.errorNum == 1203) {
-        let wait = await this.createCollection(dataBase, collectionName)
+        const wait = await this.createCollection(dataBase, collectionName)
         // console.log(wait)
         return this.create(dataBase, collectionName, doc)
       } else {
@@ -108,7 +127,7 @@ module.exports = {
   update: async function (dataBase, collectionName, bindVars, newValue) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#update-by-example
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       return await collection.updateByExample(bindVars, newValue, true, true)
@@ -120,7 +139,7 @@ module.exports = {
   updateByID: async function (dataBase, collectionName, bindVars, newValue) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#update
     try {
-      let options = {
+      const options = {
         waitForSync: true,
         returnNew: true
       }
@@ -136,7 +155,7 @@ module.exports = {
   replace: async function (dataBase, collectionName, bindVars, newValue) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#replace-by-example
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       return await collection.replaceByExample(bindVars, newValue, true)
@@ -148,7 +167,7 @@ module.exports = {
   replaceByID: async function (dataBase, collectionName, bindVars, newValue) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#replace
     try {
-      let options = {
+      const options = {
         waitForSync: true,
         returnNew: true
       }
@@ -164,7 +183,7 @@ module.exports = {
   delete: async function (dataBase, collectionName, bindVars) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#remove-by-example
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       return await collection.removeByExample(bindVars, true)
@@ -176,7 +195,7 @@ module.exports = {
   deleteByID: async function (dataBase, collectionName, key) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#remove
     try {
-      let options = {
+      const options = {
         waitForSync: true
       }
       let db = await this.getDB()
@@ -191,14 +210,16 @@ module.exports = {
   findOne: async function (dataBase, collectionName, bindVars, options) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#query-by-example
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       let cursor = await collection.byExample(bindVars)
       if (cursor.count >= 1) {
         return cursor._result[0]
       } else {
-        let msg = `Resultado não encontrado. DB[${dataBase}]/collection[${collectionName}]/bindVars[${JSON.stringify(bindVars)}]`
+        const msg = `Resultado não encontrado. DB[${dataBase}]/collection[${collectionName}]/bindVars[${JSON.stringify(
+          bindVars
+        )}]`
         let error = new Error(msg)
         throw error
       }
@@ -214,7 +235,7 @@ module.exports = {
   find: async function (dataBase, collectionName, bindVars, options) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#query-by-example
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       let cursor = await collection.byExample(bindVars)
@@ -226,7 +247,7 @@ module.exports = {
   findByID: async function (dataBase, collectionName, bindVars) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#document
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       let cursor = await collection.document(bindVars)
@@ -238,7 +259,7 @@ module.exports = {
   count: async function (dataBase, collectionName) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#count
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let collection = db.collection(collectionName)
       let cursor = await collection.count()
@@ -250,7 +271,7 @@ module.exports = {
   query: async function (dataBase, query, bindVars) {
     //  https://docs.arangodb.com/3.0/AQL/Fundamentals/Syntax.html
     try {
-      let db = await this.getDB()
+      const db = await this.getDB()
       db.useDatabase(dataBase)
       let cursor = await db.query({ query: query, bindVars: bindVars })
       return await cursor.all()
@@ -278,7 +299,10 @@ module.exports = {
       if (typeof config.connection === 'undefined') {
         throw new Error('Invalid Config')
       }
-      let db = new Database(config.connection)
+      if (typeof config.connection === 'undefined') {
+        throw new Error('Invalid Config')
+      }
+      const db = new Database(config.connection)
       db.useBasicAuth(config.auth.username, config.auth.password)
       this.db = db
       return db

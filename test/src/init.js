@@ -11,20 +11,26 @@ describe('init', function () {
     }
   })
   it('Iniciar o arangoDB', async function () {
-    let config = {
+    const config = {
       connection: {
-        url: 'http://127.0.0.1:8529'
+        url: 'http://doha.com.br:8529/'
       },
       auth: {
-        username: 'root',
+        username: 'test',
         password: 'geysa123'
+      },
+      schemas: {
+        testCollectionName: {
+          options: {},
+          indexes: [{}]
+        }
       }
     }
-    let init = await arangodb.init(config)
+    const init = await arangodb.init(config)
     expect(init).to.be.a('object')
   })
   it('Test DB existe', async function () {
-    let db = await arangodb.getDB()
+    const db = await arangodb.getDB()
     expect(db).to.be.a('object')
   })
 })
