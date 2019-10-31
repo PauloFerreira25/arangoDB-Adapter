@@ -1,25 +1,24 @@
 const Database = require('arangojs').Database
 module.exports = {
-  db: undefined,
+  connection: undefined,
   schemas: undefined,
-  getDB: async function () {
-    if (typeof this.db === 'undefined') {
-      throw new Error('DB não inicializado')
+  getConnection: async function () {
+    if (typeof this.connection === 'undefined') {
+      throw new Error('Connection não inicializado')
     } else {
-      return this.db
+      return this.connection
     }
   },
   createDB: async function (dataBase) {
     try {
-      const db = await this.getDB()
-      db.useDatabase('_system')
-      return db.createDatabase(dataBase)
+      const db = await this.getConnection()
+      await db.useDatabase('_system')
+      await db.createDatabase(dataBase)
+      return true
     } catch (error) {
-      if (error.errorNum !== 1207) {
-        // console.error({ error })
-        throw error
-      }
-      return error
+      if (error.errorNum === 1207) {
+        return false
+      } else { throw error }
     }
   },
   createCollection: async function (
@@ -27,7 +26,7 @@ module.exports = {
     collectionName,
     options = { waitForSync: true }
   ) {
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     const e = await collection.exists()
@@ -61,12 +60,12 @@ module.exports = {
     return true
   },
   dropDatabase: async function (database) {
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase('_system')
     return db.dropDatabase(database)
   },
   dropCollection: async function (dataBase, collectionName, options = {}) {
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     const e = await collection.exists()
@@ -76,13 +75,13 @@ module.exports = {
     return true
   },
   createIndex: async function (dataBase, collectionName, index) {
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     return collection.createIndex(index)
   },
   createHashIndex: async function (dataBase, collectionName, fields, opts = {}) {
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     return collection.createHashIndex(fields, opts)
@@ -95,7 +94,7 @@ module.exports = {
     insetOptions = { waitForSync: true, returnNew: true }
   ) {
     try {
-      const db = await this.getDB()
+      const db = await this.getConnection()
       db.useDatabase(dataBase)
       const collection = db.collection(collectionName)
       // console.debug('collection', { collection })
@@ -117,7 +116,7 @@ module.exports = {
   },
   update: async function (dataBase, collectionName, bindVars, newValue) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#update-by-example
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     return collection.updateByExample(bindVars, newValue, true, true)
@@ -129,14 +128,14 @@ module.exports = {
       returnNew: true
     }
     // abc
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     return collection.update(bindVars, newValue, options)
   },
   replace: async function (dataBase, collectionName, bindVars, newValue) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#replace-by-example
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     return collection.replaceByExample(bindVars, newValue, true)
@@ -148,14 +147,14 @@ module.exports = {
       waitForSync: true,
       returnNew: true
     }
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     return collection.replace(bindVars, newValue, options)
   },
   delete: async function (dataBase, collectionName, bindVars) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#remove-by-example
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     return collection.removeByExample(bindVars, true)
@@ -165,7 +164,7 @@ module.exports = {
     const options = {
       waitForSync: true
     }
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     return collection.remove(key, options)
@@ -173,7 +172,7 @@ module.exports = {
   findOne: async function (dataBase, collectionName, bindVars, options) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#query-by-example
     try {
-      const db = await this.getDB()
+      const db = await this.getConnection()
       db.useDatabase(dataBase)
       const collection = db.collection(collectionName)
       const cursor = await collection.byExample(bindVars)
@@ -197,7 +196,7 @@ module.exports = {
   },
   find: async function (dataBase, collectionName, bindVars, options) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#query-by-example
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     const cursor = await collection.byExample(bindVars)
@@ -205,7 +204,7 @@ module.exports = {
   },
   findByID: async function (dataBase, collectionName, bindVars) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#document
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     const cursor = await collection.document(bindVars)
@@ -213,7 +212,7 @@ module.exports = {
   },
   count: async function (dataBase, collectionName) {
     // https://docs.arangodb.com/3.3/Manual/DataModeling/Documents/DocumentMethods.html#count
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const collection = db.collection(collectionName)
     const cursor = await collection.count()
@@ -221,14 +220,14 @@ module.exports = {
   },
   query: async function (dataBase, query, bindVars) {
     //  https://docs.arangodb.com/3.0/AQL/Fundamentals/Syntax.html
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     const cursor = await db.query({ query: query, bindVars: bindVars })
     return cursor.all()
   },
   queryCursor: async function (dataBase, query, bindVars, options) {
     //  https://docs.arangodb.com/3.0/AQL/Fundamentals/Syntax.html
-    const db = await this.getDB()
+    const db = await this.getConnection()
     db.useDatabase(dataBase)
     return db.query({ query, bindVars }, options)
   },
@@ -245,7 +244,7 @@ module.exports = {
     }
     const db = new Database(config.connection)
     db.useBasicAuth(config.auth.username, config.auth.password)
-    this.db = db
+    this.connection = db
     this.schemas = config.schemas || {}
     return db
   }

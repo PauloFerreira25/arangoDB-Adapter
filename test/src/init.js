@@ -5,11 +5,11 @@ const dataBase = 'testDB'
 describe('init', function () {
   it('Test DB não inicializado', async function () {
     try {
-      await arangodb.getDB()
+      await arangodb.getConnection()
     } catch (error) {
       expect(function () {
         throw error
-      }).to.throw('DB não inicializado')
+      }).to.throw('Connection não inicializado')
     }
   })
   it('Iniciar o arangoDB', async function () {
@@ -37,15 +37,17 @@ describe('init', function () {
     expect(init).to.be.a('object')
   })
   it('Test Connection existe', async function () {
-    const db = await arangodb.getDB()
+    const db = await arangodb.getConnection()
     expect(db).to.be.a('object')
   })
   it('Create DataBase', async function () {
     const db = await arangodb.createDB(dataBase)
-    expect(db).to.be.a('object')
+    // eslint-disable-next-line no-unused-expressions
+    expect(db).to.be.true
   })
-  // it('Test DB existe', async function () {
-  //   const db = await arangodb.getDB()
-  //   expect(db).to.be.a('object')
-  // })
+  it('Create DataBase - Again', async function () {
+    const db = await arangodb.createDB(dataBase)
+    // eslint-disable-next-line no-unused-expressions
+    expect(db).to.be.false
+  })
 })
