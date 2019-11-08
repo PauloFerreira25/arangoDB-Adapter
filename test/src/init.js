@@ -40,8 +40,18 @@ describe('init', function () {
     const db = await arangodb.getConnection()
     expect(db).to.be.a('object')
   })
+  it('Teste DataBase Existe Before Create', async function () {
+    const db = await arangodb.existDB(dataBase)
+    // eslint-disable-next-line no-unused-expressions
+    expect(db).to.be.false
+  })
   it('Create DataBase', async function () {
     const db = await arangodb.createDB(dataBase)
+    // eslint-disable-next-line no-unused-expressions
+    expect(db).to.be.true
+  })
+  it('Teste DataBase Existe After Create', async function () {
+    const db = await arangodb.existDB(dataBase)
     // eslint-disable-next-line no-unused-expressions
     expect(db).to.be.true
   })

@@ -12,9 +12,31 @@ module.exports = {
   createDB: async function (dataBase) {
     try {
       const db = await this.getConnection()
+      const check = await this.existDB(dataBase)
+      if (check === false) {
+        await db.useDatabase('_system')
+        await db.createDatabase(dataBase)
+        return true
+      } else {
+        return false
+      }
+    } catch (error) {
+      if (error.errorNum === 1207) {
+        return false
+      } else { throw error }
+    }
+  },
+  existDB: async function (dataBase) {
+    try {
+      const db = await this.getConnection()
       await db.useDatabase('_system')
-      await db.createDatabase(dataBase)
-      return true
+      const dbList = await db.listDatabases()
+      const indexDB = dbList.indexOf(dataBase)
+      if (indexDB > -1) {
+        return true
+      } else {
+        return false
+      }
     } catch (error) {
       if (error.errorNum === 1207) {
         return false
