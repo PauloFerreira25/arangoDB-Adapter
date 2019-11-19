@@ -1,6 +1,6 @@
-const init = require('./src/init')
-const run = require('./src/run')
-const end = require('./src/end')
+const init = require('./lib/init')
+const run = require('./lib/run')
+const end = require('./lib/end')
 module.exports = {
   init,
   run,
