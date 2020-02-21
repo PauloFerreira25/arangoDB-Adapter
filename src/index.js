@@ -2,6 +2,7 @@ const Database = require('arangojs').Database
 module.exports = {
   connection: undefined,
   schemas: undefined,
+  newKeyFunction: undefined,
   getConnection: async function () {
     if (typeof this.connection === 'undefined') {
       throw new Error('Connection não inicializado')
@@ -120,6 +121,10 @@ module.exports = {
       db.useDatabase(dataBase)
       const collection = db.collection(collectionName)
       // console.debug('collection', { collection })
+
+      // Geração de _key
+      doc = this.newKeyFunction(doc)
+
       return await collection.save(doc, insetOptions)
     } catch (error) {
       // console.debug(error.errorNum, { error })
@@ -258,16 +263,19 @@ module.exports = {
     if (typeof config === 'undefined') {
       throw new Error('Invalid Config')
     }
+    
     if (typeof config.connection === 'undefined') {
       throw new Error('Invalid Config')
     }
-    if (typeof config.connection === 'undefined') {
-      throw new Error('Invalid Config')
-    }
+
     const db = new Database(config.connection)
+    
     db.useBasicAuth(config.auth.username, config.auth.password)
     this.connection = db
+
     this.schemas = config.schemas || {}
+    this.newKeyFunction = require('./_keyFunctions')(config._keyGeneration)
+    
     return db
   }
 }
