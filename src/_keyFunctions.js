@@ -1,5 +1,9 @@
 const functions = {
   uuid: doc => {
+    if (typeof doc._key !== 'undefined') {
+      return doc
+    }
+
     const uuidv4 = require('uuid/v4')
     doc._key = uuidv4()
     return doc

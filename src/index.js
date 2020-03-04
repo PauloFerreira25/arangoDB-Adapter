@@ -263,19 +263,19 @@ module.exports = {
     if (typeof config === 'undefined') {
       throw new Error('Invalid Config')
     }
-    
+
     if (typeof config.connection === 'undefined') {
       throw new Error('Invalid Config')
     }
 
     const db = new Database(config.connection)
-    
+
     db.useBasicAuth(config.auth.username, config.auth.password)
     this.connection = db
 
     this.schemas = config.schemas || {}
     this.newKeyFunction = require('./_keyFunctions')(config._keyGeneration)
-    
+
     return db
   }
 }
